@@ -1,5 +1,8 @@
 # go-pkg MySQL Package
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/wwwangxc/go-pkg/mysql)](https://goreportcard.com/report/github.com/wwwangxc/go-pkg/mysql)
+[![GoDoc](https://pkg.go.dev/badge/github.com/wwwangxc/go-pkg/mysql?status.svg)](https://pkg.go.dev/github.com/wwwangxc/go-pkg/mysql)
+
 go-pkg/config is an componentized mysql package, it provides an easy way to use mysql.
 
 ## Required
