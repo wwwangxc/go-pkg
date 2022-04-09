@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strings"
 	"sync"
 
@@ -11,15 +10,6 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/wwwangxc/go-pkg/config/unmarshaler"
-)
-
-var (
-	packageName = "go-pkg/config"
-
-	// ErrUnmarshalerNotExist unmarshaler not exist
-	ErrUnmarshalerNotExist = fmt.Errorf("%s: unmarshaler not exist", packageName)
-	// ErrConfigNotExist config not exist
-	ErrConfigNotExist = fmt.Errorf("%s: config not exist", packageName)
 )
 
 // Load load config
@@ -125,7 +115,7 @@ func defaultConfigure(path string) *configureImpl {
 	var err error
 	c.watcher, err = fsnotify.NewWatcher()
 	if err != nil {
-		log.Printf("%s: new file watcher fail. err:%v\n", packageName, err)
+		logErrorf("%s: new file watcher fail. err:%v\n", packageName, err)
 	}
 
 	return c
@@ -326,13 +316,13 @@ func (c *configureImpl) Reload() {
 
 	data, err := ioutil.ReadFile(c.path)
 	if err != nil {
-		log.Printf("%s: reload file fail. err:%v\n", packageName, err)
+		logErrorf("%s: reload file fail. err:%v\n", packageName, err)
 		return
 	}
 
 	unmarshalData := map[string]interface{}{}
 	if err = c.unmarshaler.Unmarshal(data, &unmarshalData); err != nil {
-		log.Printf("%s: reload file unmarshal fail. err:%v\n", packageName, err)
+		logErrorf("%s: reload file unmarshal fail. err:%v\n", packageName, err)
 		return
 	}
 
@@ -351,7 +341,7 @@ func (c *configureImpl) watch(callback func(*configureImpl)) {
 	go func() {
 		for event := range c.watcher.Events {
 			if event.Op&fsnotify.Write != fsnotify.Write {
-				log.Printf("%s: ignore file event:%s. file:%s\n", packageName, event.Name, c.path)
+				logInfo("%s: ignore file event:%s. file:%s\n", packageName, event.Name, c.path)
 				continue
 			}
 
@@ -366,7 +356,7 @@ func (c *configureImpl) watch(callback func(*configureImpl)) {
 			}
 		}
 
-		log.Printf("%s: break file watch. file:%s\n", packageName, c.path)
+		logInfo("%s: break file watch. file:%s\n", packageName, c.path)
 	}()
 }
 
