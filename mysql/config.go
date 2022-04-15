@@ -31,12 +31,10 @@ func init() {
 
 type appConfig struct {
 	Database struct {
-		MySQL struct {
-			MaxIdle     int            `yaml:"max_idle"`
-			MaxOpen     int            `yaml:"max_open"`
-			MaxIdleTime int            `yaml:"max_idle_time"`
-			Client      []clientConfig `yaml:"client"`
-		} `yaml:"mysql"`
+		MaxIdle     int            `yaml:"max_idle"`
+		MaxOpen     int            `yaml:"max_open"`
+		MaxIdleTime int            `yaml:"max_idle_time"`
+		MySQL       []clientConfig `yaml:"mysql"`
 	} `yaml:"database"`
 }
 
@@ -45,18 +43,18 @@ func (a *appConfig) getClientConfigs() []clientConfig {
 		return []clientConfig{}
 	}
 
-	clientConfigs := make([]clientConfig, 0, len(a.Database.MySQL.Client))
-	for _, v := range a.Database.MySQL.Client {
+	clientConfigs := make([]clientConfig, 0, len(a.Database.MySQL))
+	for _, v := range a.Database.MySQL {
 		if v.MaxIdle == 0 {
-			v.MaxIdle = a.Database.MySQL.MaxIdle
+			v.MaxIdle = a.Database.MaxIdle
 		}
 
 		if v.MaxOpen == 0 {
-			v.MaxOpen = a.Database.MySQL.MaxOpen
+			v.MaxOpen = a.Database.MaxOpen
 		}
 
 		if v.MaxIdleTime == 0 {
-			v.MaxIdleTime = a.Database.MySQL.MaxIdleTime
+			v.MaxIdleTime = a.Database.MaxIdleTime
 		}
 
 		clientConfigs = append(clientConfigs, v)
