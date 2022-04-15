@@ -6,3 +6,4 @@
 | :---:| :---: |
 | [config](config/README.md) | easy way to read config |
 | [mysql](mysql/README.md) | easy way to use mysql |
+| [orm](orm/README.md) | easy way to use gorm |
