@@ -26,11 +26,13 @@ func init() {
 
 type appConfig struct {
 	Database struct {
-		MaxIdle     int            `yaml:"max_idle"`
-		MaxOpen     int            `yaml:"max_open"`
-		MaxIdleTime int            `yaml:"max_idle_time"`
-		Client      []clientConfig `yaml:"client"`
-	} `yaml:"database"`
+		MySQL      dbConfig       `json:"mysql"`
+		PostgreSQL dbConfig       `json:"postgresql"`
+		SQLite     dbConfig       `json:"sqlite"`
+		SQLServer  dbConfig       `json:"sqlserver"`
+		Clickhouse dbConfig       `json:"clickhouse"`
+		CliConfig  []clientConfig `yaml:"client" json:"cli_config"`
+	} `yaml:"database" json:"database"`
 }
 
 func (a *appConfig) getClientConfigs() []clientConfig {
@@ -38,18 +40,19 @@ func (a *appConfig) getClientConfigs() []clientConfig {
 		return []clientConfig{}
 	}
 
-	clientConfigs := make([]clientConfig, 0, len(a.Database.Client))
-	for _, v := range a.Database.Client {
+	clientConfigs := make([]clientConfig, 0, len(a.Database.CliConfig))
+	for _, v := range a.Database.CliConfig {
+		dbCfg := a.getDBConfig(v.Driver)
 		if v.MaxIdle == 0 {
-			v.MaxIdle = a.Database.MaxIdle
+			v.MaxIdle = dbCfg.MaxIdle
 		}
 
 		if v.MaxOpen == 0 {
-			v.MaxOpen = a.Database.MaxOpen
+			v.MaxOpen = dbCfg.MaxOpen
 		}
 
 		if v.MaxIdleTime == 0 {
-			v.MaxIdleTime = a.Database.MaxIdleTime
+			v.MaxIdleTime = dbCfg.MaxIdleTime
 		}
 
 		clientConfigs = append(clientConfigs, v)
@@ -58,13 +61,35 @@ func (a *appConfig) getClientConfigs() []clientConfig {
 	return clientConfigs
 }
 
+func (a *appConfig) getDBConfig(driver string) dbConfig {
+	switch driver {
+	case "mysql":
+		return a.Database.MySQL
+	case "postgresql":
+		return a.Database.PostgreSQL
+	case "sqlite":
+		return a.Database.SQLite
+	case "sqlserver":
+		return a.Database.SQLServer
+	case "clickhouse":
+		return a.Database.Clickhouse
+	default:
+		return dbConfig{}
+	}
+}
+
+type dbConfig struct {
+	MaxIdle     int `yaml:"max_idle"`
+	MaxOpen     int `yaml:"max_open"`
+	MaxIdleTime int `yaml:"max_idle_time"`
+}
+
 type clientConfig struct {
-	Name        string `yaml:"name"`
-	DSN         string `yaml:"dsn"`
-	Driver      string `yaml:"driver"`
-	MaxIdle     int    `yaml:"max_idle"`
-	MaxOpen     int    `yaml:"max_open"`
-	MaxIdleTime int    `yaml:"max_idle_time"`
+	Name   string `yaml:"name"`
+	DSN    string `yaml:"dsn"`
+	Driver string `yaml:"driver"`
+
+	dbConfig `yaml:",inline"`
 }
 
 func loadAppConfig() (*appConfig, error) {
@@ -94,7 +119,8 @@ func getClientConfig(name string) clientConfig {
 	c, exist := clientConfigMap[name]
 	if !exist {
 		c = clientConfig{
-			Name: name,
+			Name:   name,
+			Driver: "mysql",
 		}
 		clientConfigMap[name] = c
 	}
