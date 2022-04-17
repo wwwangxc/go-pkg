@@ -22,13 +22,13 @@ func WithReadOnly(readOnly bool) TxOption {
 	}
 }
 
-// ClientProxyOption mysql client proxy option
-type ClientProxyOption func(*clientConfig)
+// Option mysql client proxy option
+type Option func(*mysqlBuilder)
 
 // WithDSN set dsn
-func WithDSN(dsn string) ClientProxyOption {
-	return func(c *clientConfig) {
-		c.DSN = dsn
+func WithDSN(dsn string) Option {
+	return func(b *mysqlBuilder) {
+		b.cliConfig.DSN = dsn
 	}
 }
 
@@ -37,9 +37,9 @@ func WithDSN(dsn string) ClientProxyOption {
 //
 // If MaxOpenConns is greater than 0 but less than the new MaxIdleConns,
 // then the new MaxIdleConns will be reduced to match the MaxOpenConns limit.
-func WithMaxIdle(maxIdel int) ClientProxyOption {
-	return func(c *clientConfig) {
-		c.MaxIdle = maxIdel
+func WithMaxIdle(maxIdel int) Option {
+	return func(b *mysqlBuilder) {
+		b.cliConfig.MaxIdle = maxIdel
 	}
 }
 
@@ -48,9 +48,9 @@ func WithMaxIdle(maxIdel int) ClientProxyOption {
 // If MaxIdleConns is greater than 0 and the new MaxOpenConns is less than
 // MaxIdleConns, then MaxIdleConns will be reduced to match the new
 // MaxOpenConns limit.
-func WithMaxOpen(maxOpen int) ClientProxyOption {
-	return func(c *clientConfig) {
-		c.MaxOpen = maxOpen
+func WithMaxOpen(maxOpen int) Option {
+	return func(b *mysqlBuilder) {
+		b.cliConfig.MaxOpen = maxOpen
 	}
 }
 
@@ -58,8 +58,8 @@ func WithMaxOpen(maxOpen int) ClientProxyOption {
 //
 // Expired connections may be closed lazily before reuse.
 // Uint: milliseconds
-func WithMaxIdleTime(maxIdelTime int) ClientProxyOption {
-	return func(c *clientConfig) {
-		c.MaxIdleTime = maxIdelTime
+func WithMaxIdleTime(maxIdelTime int) Option {
+	return func(b *mysqlBuilder) {
+		b.cliConfig.MaxIdleTime = maxIdelTime
 	}
 }

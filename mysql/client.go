@@ -55,25 +55,17 @@ type ClientProxy interface {
 }
 
 type clientProxyImpl struct {
-	c  *clientConfig
 	db *sql.DB
 }
 
 // NewClientProxy new myql client proxy
-func NewClientProxy(name string, opts ...ClientProxyOption) (ClientProxy, error) {
-	c := getClientConfig(name)
-
-	for _, opt := range opts {
-		opt(&c)
-	}
-
-	db, err := c.buildDB()
+func NewClientProxy(name string, opts ...Option) (ClientProxy, error) {
+	db, err := newMySQLBuilder(name, opts...).build()
 	if err != nil {
 		return nil, fmt.Errorf("build db fail. error:%v", err)
 	}
 
 	return &clientProxyImpl{
-		c:  &c,
 		db: db,
 	}, nil
 }

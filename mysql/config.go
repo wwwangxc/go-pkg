@@ -1,10 +1,8 @@
 package mysql
 
 import (
-	"database/sql"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/wwwangxc/go-pkg/config"
 )
@@ -12,9 +10,6 @@ import (
 var (
 	clientConfigMap = map[string]clientConfig{}
 	clientConfigMu  sync.Mutex
-
-	dbs  = map[string]*sql.DB{}
-	dbRW sync.RWMutex
 )
 
 func init() {
@@ -31,10 +26,8 @@ func init() {
 
 type appConfig struct {
 	Database struct {
-		MaxIdle     int            `yaml:"max_idle"`
-		MaxOpen     int            `yaml:"max_open"`
-		MaxIdleTime int            `yaml:"max_idle_time"`
-		MySQL       []clientConfig `yaml:"mysql"`
+		MySQLConfig mysqlConfig    `yaml:"mysql"`
+		CliConfig   []clientConfig `yaml:"client"`
 	} `yaml:"database"`
 }
 
@@ -43,18 +36,18 @@ func (a *appConfig) getClientConfigs() []clientConfig {
 		return []clientConfig{}
 	}
 
-	clientConfigs := make([]clientConfig, 0, len(a.Database.MySQL))
-	for _, v := range a.Database.MySQL {
+	clientConfigs := make([]clientConfig, 0, len(a.Database.CliConfig))
+	for _, v := range a.Database.CliConfig {
 		if v.MaxIdle == 0 {
-			v.MaxIdle = a.Database.MaxIdle
+			v.MaxIdle = a.Database.MySQLConfig.MaxIdle
 		}
 
 		if v.MaxOpen == 0 {
-			v.MaxOpen = a.Database.MaxOpen
+			v.MaxOpen = a.Database.MySQLConfig.MaxOpen
 		}
 
 		if v.MaxIdleTime == 0 {
-			v.MaxIdleTime = a.Database.MaxIdleTime
+			v.MaxIdleTime = a.Database.MySQLConfig.MaxIdleTime
 		}
 
 		clientConfigs = append(clientConfigs, v)
@@ -63,49 +56,17 @@ func (a *appConfig) getClientConfigs() []clientConfig {
 	return clientConfigs
 }
 
-type clientConfig struct {
-	Name        string `yaml:"name"`
-	DSN         string `yaml:"dsn"`
-	MaxIdle     int    `yaml:"max_idle"`
-	MaxOpen     int    `yaml:"max_open"`
-	MaxIdleTime int    `yaml:"max_idle_time"`
+type mysqlConfig struct {
+	MaxIdle     int `yaml:"max_idle"`
+	MaxOpen     int `yaml:"max_open"`
+	MaxIdleTime int `yaml:"max_idle_time"`
 }
 
-func (c *clientConfig) buildDB() (*sql.DB, error) {
-	dbRW.RLock()
-	db, ok := dbs[c.Name]
-	dbRW.RUnlock()
-	if ok {
-		return db, nil
-	}
+type clientConfig struct {
+	Name string `yaml:"name"`
+	DSN  string `yaml:"dsn"`
 
-	dbRW.Lock()
-	defer dbRW.Unlock()
-
-	db, ok = dbs[c.Name]
-	if ok {
-		return db, nil
-	}
-
-	db, err := sql.Open("mysql", c.DSN)
-	if err != nil {
-		return nil, fmt.Errorf("mysql open fail. error:%v", err)
-	}
-
-	if c.MaxIdle > 0 {
-		db.SetMaxIdleConns(c.MaxIdle)
-	}
-
-	if c.MaxOpen > 0 {
-		db.SetMaxOpenConns(c.MaxOpen)
-	}
-
-	if c.MaxIdleTime > 0 {
-		db.SetConnMaxIdleTime(time.Duration(c.MaxIdleTime) * time.Millisecond)
-	}
-
-	dbs[c.Name] = db
-	return db, nil
+	mysqlConfig `yaml:",inline"`
 }
 
 func loadAppConfig() (*appConfig, error) {

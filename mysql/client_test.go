@@ -19,7 +19,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 	errCommit := errors.New("commit fail")
 	errRollback := errors.New("rollback fail")
 	type fields struct {
-		c  *clientConfig
 		db *sql.DB
 	}
 	type args struct {
@@ -144,7 +143,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 				})
 
 			c := &clientProxyImpl{
-				c:  tt.fields.c,
 				db: tt.fields.db,
 			}
 
@@ -160,7 +158,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 
 func Test_clientProxyImpl_Query(t *testing.T) {
 	type fields struct {
-		c  *clientConfig
 		db *sql.DB
 	}
 	type args struct {
@@ -239,7 +236,6 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 				})
 
 			c := &clientProxyImpl{
-				c:  tt.fields.c,
 				db: tt.fields.db,
 			}
 			if err := c.Query(tt.args.ctx, tt.args.f, tt.args.query, tt.args.args...); (err != nil) != tt.wantErr {
@@ -251,7 +247,6 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 
 func Test_clientProxyImpl_QueryRow(t *testing.T) {
 	type fields struct {
-		c  *clientConfig
 		db *sql.DB
 	}
 	type args struct {
@@ -304,7 +299,6 @@ func Test_clientProxyImpl_QueryRow(t *testing.T) {
 				})
 
 			c := &clientProxyImpl{
-				c:  tt.fields.c,
 				db: tt.fields.db,
 			}
 			if err := c.QueryRow(tt.args.ctx, tt.args.dest, tt.args.query, tt.args.args...); (err != nil) != tt.wantErr {
@@ -316,7 +310,6 @@ func Test_clientProxyImpl_QueryRow(t *testing.T) {
 
 func Test_clientProxyImpl_Select(t *testing.T) {
 	type fields struct {
-		c  *clientConfig
 		db *sql.DB
 	}
 	type args struct {
@@ -359,7 +352,6 @@ func Test_clientProxyImpl_Select(t *testing.T) {
 				})
 
 			c := &clientProxyImpl{
-				c:  tt.fields.c,
 				db: tt.fields.db,
 			}
 			if err := c.Select(tt.args.ctx, tt.args.dest, tt.args.query, tt.args.args...); (err != nil) != tt.wantErr {
