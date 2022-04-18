@@ -5,6 +5,8 @@
 
 go-pkg/orm is an componentized orm package, it provides an easy way to create and manage gorm.DB.
 
+Based off [gorm.io/gorm](https://github.com/go-gorm/gorm).
+
 ## Install
 
 ```sh

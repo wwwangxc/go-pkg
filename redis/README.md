@@ -5,6 +5,8 @@
 
 go-pkg/redis is an componentized redis package, it provides an easy way to create and manage redis pool.
 
+Based off [gomodule/redigo](https://github.com/gomodule/redigo).
+
 ## Install
 
 ```sh

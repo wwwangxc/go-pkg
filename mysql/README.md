@@ -5,6 +5,8 @@
 
 go-pkg/config is an componentized mysql package, it provides an easy way to use mysql.
 
+Based off of the [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) and [jmoiron/sqlx](https://github.com/jmoiron/sqlx).
+
 ## Required
 
 Go >= 1.15
