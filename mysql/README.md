@@ -3,9 +3,11 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/wwwangxc/go-pkg/mysql)](https://goreportcard.com/report/github.com/wwwangxc/go-pkg/mysql)
 [![GoDoc](https://pkg.go.dev/badge/github.com/wwwangxc/go-pkg/mysql?status.svg)](https://pkg.go.dev/github.com/wwwangxc/go-pkg/mysql)
 
-go-pkg/config is an componentized mysql package, it provides an easy way to use mysql.
+go-pkg/config is an componentized mysql package.
 
-Based off of the [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) and [jmoiron/sqlx](https://github.com/jmoiron/sqlx).
+It provides an easy way to configre and manage mysql client.
+
+Based on [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) and [jmoiron/sqlx](https://github.com/jmoiron/sqlx).
 
 ## Required
 

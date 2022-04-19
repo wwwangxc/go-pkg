@@ -3,7 +3,9 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/wwwangxc/go-pkg/config)](https://goreportcard.com/report/github.com/wwwangxc/go-pkg/config)
 [![GoDoc](https://pkg.go.dev/badge/github.com/wwwangxc/go-pkg/config?status.svg)](https://pkg.go.dev/github.com/wwwangxc/go-pkg/config)
 
-go-pkg/config is an componentized config package, it provides an easy way to read config.
+go-pkg/config is an componentized config plugin.
+
+It provides an easy way to load configuration files.
 
 ## Install
 
