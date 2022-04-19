@@ -3,9 +3,11 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/wwwangxc/go-pkg/orm)](https://goreportcard.com/report/github.com/wwwangxc/go-pkg/orm)
 [![GoDoc](https://pkg.go.dev/badge/github.com/wwwangxc/go-pkg/orm?status.svg)](https://pkg.go.dev/github.com/wwwangxc/go-pkg/orm)
 
-go-pkg/orm is an componentized orm package, it provides an easy way to create and manage gorm.DB.
+go-pkg/orm is an componentized orm package.
 
-Based off [gorm.io/gorm](https://github.com/go-gorm/gorm).
+it provides an easy way to configure and manage gorm.DB.
+
+Based on [gorm.io/gorm](https://github.com/go-gorm/gorm).
 
 ## Install
 

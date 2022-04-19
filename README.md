@@ -3,8 +3,8 @@
 [![Build Status](https://github.com/wwwangxc/go-pkg/workflows/Tests/badge.svg?branch=main)](https://github.com/wwwangxc/go-pkg/actions?query=branch%3Amain)
 
 | Package | Describe |
-| :---:| :---: |
-| [config](config/README.md) | easy way to read config |
-| [mysql](mysql/README.md) | easy way to use mysql |
-| [orm](orm/README.md) | easy way to use gorm |
-| [redis](redis/README.md) | easy way to use redis |
+| :---:| :--- |
+| [config](config/README.md) | Easily load configuration files |
+| [mysql](mysql/README.md) | MySQL client based on [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) and [jmoiron/sqlx](https://github.com/jmoiron/sqlx) |
+| [orm](orm/README.md) | Easily configure and manage [GORM](https://github.com/go-gorm/gorm) client |
+| [redis](redis/README.md) | Redis client based on [gomodule/redigo](https://github.com/gomodule/redigo) |

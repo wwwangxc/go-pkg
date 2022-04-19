@@ -3,9 +3,11 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/wwwangxc/go-pkg/redis)](https://goreportcard.com/report/github.com/wwwangxc/go-pkg/redis)
 [![GoDoc](https://pkg.go.dev/badge/github.com/wwwangxc/go-pkg/redis?status.svg)](https://pkg.go.dev/github.com/wwwangxc/go-pkg/redis)
 
-go-pkg/redis is an componentized redis package, it provides an easy way to create and manage redis pool.
+go-pkg/redis is an componentized redis package.
 
-Based off [gomodule/redigo](https://github.com/gomodule/redigo).
+It provides an easy way to configre and manage redis client.
+
+Based on [gomodule/redigo](https://github.com/gomodule/redigo).
 
 ## Install
 
