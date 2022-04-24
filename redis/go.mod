@@ -3,8 +3,11 @@ module github.com/wwwangxc/go-pkg/redis
 go 1.17
 
 require (
+	github.com/agiledragon/gomonkey v2.0.2+incompatible
 	github.com/golang/mock v1.6.0
 	github.com/gomodule/redigo v1.8.8
+	github.com/google/uuid v1.3.0
+	github.com/rafaeljusto/redigomock/v3 v3.1.1
 	github.com/stretchr/testify v1.7.1
 	github.com/wwwangxc/go-pkg/config v1.2.0
 )

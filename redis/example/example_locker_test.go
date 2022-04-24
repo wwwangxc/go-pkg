@@ -1,8 +1,7 @@
-package example_test
+package example
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -11,8 +10,8 @@ import (
 	"github.com/wwwangxc/go-pkg/redis"
 )
 
-func ExampleNewClientProxy() {
-	cli := redis.NewClientProxy("client_name",
+func ExampleNewLocker() {
+	l := redis.NewLocker("client_name",
 		redis.WithClientDSN("dsn"),             // set dsn, default use database.client.dsn
 		redis.WithClientMaxIdle(20),            // set max idel. default 2048
 		redis.WithClientMaxActive(100),         // set max active. default 0
@@ -21,23 +20,6 @@ func ExampleNewClientProxy() {
 		redis.WithClientMaxConnLifetime(10000), // set max conn life time, default 0
 		redis.WithClientWait(true),             // set wait
 	)
-
-	cli.Do(context.Background(), "GET", "foo")
-	// do something...
-}
-
-func ExampleClientProxy_GetConn() {
-	c := redis.NewClientProxy("client_name").GetConn()
-	defer c.Close()
-	c.Send("SET", "foo", "bar")
-	c.Send("GET", "foo")
-	c.Flush()
-	c.Receive() // reply from SET
-	c.Receive() // reply from GET
-}
-
-func ExampleClientProxy_GetLocker() {
-	l := redis.NewClientProxy("client_name").GetLocker()
 
 	// try lock
 	// not block the current goroutine.
@@ -82,29 +64,5 @@ func ExampleClientProxy_GetLocker() {
 		fmt.Printf("lock fail. error: %v\n", err)
 		return
 	}
-}
 
-func ExampleClientProxy_GetFetcher() {
-	obj := struct {
-		FieldA string `json:"field_a"`
-		FieldB int    `json:"field_b"`
-	}{}
-
-	callback := func() (interface{}, error) {
-		// do something...
-		return nil, nil
-	}
-
-	f := redis.NewClientProxy("client_name").GetFetcher()
-
-	// fetch object
-	err := f.Fetch(context.Background(), "fetcher_key", &obj,
-		redis.WithFetchCallback(callback, 1000*time.Millisecond),
-		redis.WithFetchUnmarshal(json.Unmarshal),
-		redis.WithFetchMarshal(json.Marshal))
-
-	if err != nil {
-		fmt.Printf("fetch fail. error: %v\n", err)
-		return
-	}
 }

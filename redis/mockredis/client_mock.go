@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	redis "github.com/gomodule/redigo/redis"
+	redis0 "github.com/wwwangxc/go-pkg/redis"
 )
 
 // MockClientProxy is a mock of ClientProxy interface.
@@ -67,4 +68,32 @@ func (m *MockClientProxy) GetConn() redis.Conn {
 func (mr *MockClientProxyMockRecorder) GetConn() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConn", reflect.TypeOf((*MockClientProxy)(nil).GetConn))
+}
+
+// GetFetcher mocks base method.
+func (m *MockClientProxy) GetFetcher() redis0.Fetcher {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFetcher")
+	ret0, _ := ret[0].(redis0.Fetcher)
+	return ret0
+}
+
+// GetFetcher indicates an expected call of GetFetcher.
+func (mr *MockClientProxyMockRecorder) GetFetcher() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFetcher", reflect.TypeOf((*MockClientProxy)(nil).GetFetcher))
+}
+
+// GetLocker mocks base method.
+func (m *MockClientProxy) GetLocker() redis0.Locker {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLocker")
+	ret0, _ := ret[0].(redis0.Locker)
+	return ret0
+}
+
+// GetLocker indicates an expected call of GetLocker.
+func (mr *MockClientProxyMockRecorder) GetLocker() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLocker", reflect.TypeOf((*MockClientProxy)(nil).GetLocker))
 }

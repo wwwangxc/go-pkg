@@ -21,9 +21,14 @@ type ClientProxy interface {
 	// GetConn gets a connection. The application must close the returned connection.
 	// This method always returns a valid connection so that applications can defer
 	// error handling to the first use of the connection. If there is an error
-	// getting an underlying connection, then the connection Err, Do, Send, Flush
-	// and Receive methods return that error.
+	// getting an underlying connection, then the connection Err, Do, Send, Flush and Receive methods return that error.
 	GetConn() redigo.Conn
+
+	// GetLocker gets a distributed lock provider
+	GetLocker() Locker
+
+	// GetFetcher gets an object fetcher
+	GetFetcher() Fetcher
 }
 
 type clientProxyImpl struct {
@@ -31,7 +36,7 @@ type clientProxyImpl struct {
 }
 
 // NewClientProxy new redis client proxy
-func NewClientProxy(name string, opts ...Option) ClientProxy {
+func NewClientProxy(name string, opts ...ClientOption) ClientProxy {
 	return &clientProxyImpl{
 		pool: newRedisBuilder(name, opts...).build(),
 	}
@@ -51,7 +56,6 @@ func (c *clientProxyImpl) Do(ctx context.Context, cmd string, args ...interface{
 			logErrorf("connect close fail. error:%v", err)
 		}
 	}()
-	defer conn.Close()
 
 	return redigo.DoContext(conn, ctx, cmd, args...)
 }
@@ -63,4 +67,14 @@ func (c *clientProxyImpl) Do(ctx context.Context, cmd string, args ...interface{
 // and Receive methods return that error.
 func (c *clientProxyImpl) GetConn() redigo.Conn {
 	return c.pool.Get()
+}
+
+// GetLocker gets a distributed lock provider
+func (c *clientProxyImpl) GetLocker() Locker {
+	return newLocker(c)
+}
+
+// GetFetcher gets an object fetcher
+func (c *clientProxyImpl) GetFetcher() Fetcher {
+	return newFetcher(c)
 }

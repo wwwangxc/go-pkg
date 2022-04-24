@@ -18,7 +18,7 @@ type redisBuilder struct {
 	cliConfig clientConfig
 }
 
-func newRedisBuilder(name string, opts ...Option) *redisBuilder {
+func newRedisBuilder(name string, opts ...ClientOption) *redisBuilder {
 	builder := &redisBuilder{
 		cliConfig: getClientConfig(name),
 	}

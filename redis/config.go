@@ -69,8 +69,8 @@ func (a *appConfig) getClientConfigs() []clientConfig {
 type redisConfig struct {
 	MaxIdle         int  `yaml:"max_idle"`
 	MaxActive       int  `yaml:"max_active"`
-	IdleTimeout     int  `yaml:"idle_timeout"`
 	MaxConnLifetime int  `yaml:"max_conn_lifetime"`
+	IdleTimeout     int  `yaml:"idle_timeout"`
 	Timeout         int  `yaml:"timeout"`
 	Wait            bool `yaml:"wait"`
 }
