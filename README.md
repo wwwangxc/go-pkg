@@ -8,3 +8,4 @@
 | [mysql](mysql/README.md) | MySQL client based on [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) and [jmoiron/sqlx](https://github.com/jmoiron/sqlx) |
 | [orm](orm/README.md) | Easily configure and manage [GORM](https://github.com/go-gorm/gorm) client |
 | [redis](redis/README.md) | Redis client based on [gomodule/redigo](https://github.com/gomodule/redigo) |
+| [concurrency](concurrency/README.md) | Concurrency helper |
