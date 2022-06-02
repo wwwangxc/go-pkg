@@ -84,7 +84,7 @@ func main() {
 **go-pkg.yaml***
 
 ```yaml
-database:
+client:
   mysql:
     max_idle: 11
     max_open: 22
@@ -105,7 +105,7 @@ database:
     max_idle: 11
     max_open: 22
     max_idle_time: 33
-  client:
+  service:
     - name: db_mysql
       dsn: root:root@tcp(127.0.0.1:3306)/db1?charset=utf8&parseTime=True
       driver: mysql

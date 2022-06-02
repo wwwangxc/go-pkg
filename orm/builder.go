@@ -16,13 +16,13 @@ var (
 )
 
 type gormBuilder struct {
-	dbConfig   clientConfig
+	dbConfig   serviceConfig
 	gormConfig gorm.Config
 }
 
 func newGORMBuilder(name string, opts ...GORMProxyOption) *gormBuilder {
 	builder := &gormBuilder{
-		dbConfig: getClientConfig(name),
+		dbConfig: getServiceConfig(name),
 	}
 
 	for _, opt := range opts {

@@ -13,12 +13,12 @@ var (
 )
 
 type mysqlBuilder struct {
-	cliConfig clientConfig
+	cfg serviceConfig
 }
 
 func newMySQLBuilder(name string, opts ...Option) *mysqlBuilder {
 	builder := &mysqlBuilder{
-		cliConfig: getClientConfig(name),
+		cfg: getServiceConfig(name),
 	}
 
 	for _, opt := range opts {
@@ -30,7 +30,7 @@ func newMySQLBuilder(name string, opts ...Option) *mysqlBuilder {
 
 func (m *mysqlBuilder) build() (*sql.DB, error) {
 	dbRW.RLock()
-	db, ok := dbs[m.cliConfig.Name]
+	db, ok := dbs[m.cfg.Name]
 	dbRW.RUnlock()
 	if ok {
 		return db, nil
@@ -39,28 +39,28 @@ func (m *mysqlBuilder) build() (*sql.DB, error) {
 	dbRW.Lock()
 	defer dbRW.Unlock()
 
-	db, ok = dbs[m.cliConfig.Name]
+	db, ok = dbs[m.cfg.Name]
 	if ok {
 		return db, nil
 	}
 
-	db, err := sql.Open("mysql", m.cliConfig.DSN)
+	db, err := sql.Open("mysql", m.cfg.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("mysql open fail. error:%v", err)
 	}
 
-	if m.cliConfig.MaxIdle > 0 {
-		db.SetMaxIdleConns(m.cliConfig.MaxIdle)
+	if m.cfg.MaxIdle > 0 {
+		db.SetMaxIdleConns(m.cfg.MaxIdle)
 	}
 
-	if m.cliConfig.MaxOpen > 0 {
-		db.SetMaxOpenConns(m.cliConfig.MaxOpen)
+	if m.cfg.MaxOpen > 0 {
+		db.SetMaxOpenConns(m.cfg.MaxOpen)
 	}
 
-	if m.cliConfig.MaxIdleTime > 0 {
-		db.SetConnMaxIdleTime(time.Duration(m.cliConfig.MaxIdleTime) * time.Millisecond)
+	if m.cfg.MaxIdleTime > 0 {
+		db.SetConnMaxIdleTime(time.Duration(m.cfg.MaxIdleTime) * time.Millisecond)
 	}
 
-	dbs[m.cliConfig.Name] = db
+	dbs[m.cfg.Name] = db
 	return db, nil
 }

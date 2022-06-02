@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	clientConfigMap = map[string]clientConfig{}
-	clientConfigMu  sync.Mutex
+	serviceConfigMap = map[string]serviceConfig{}
+	serviceConfigMu  sync.Mutex
 )
 
 func init() {
@@ -19,41 +19,41 @@ func init() {
 		return
 	}
 
-	for _, v := range c.getClientConfigs() {
-		registerClientConfig(v)
+	for _, v := range c.getServiceConfigs() {
+		registerServiceConfig(v)
 	}
 }
 
 type appConfig struct {
-	Database struct {
-		MySQLConfig mysqlConfig    `yaml:"mysql"`
-		CliConfig   []clientConfig `yaml:"client"`
-	} `yaml:"database"`
+	Client struct {
+		MySQLConfig mysqlConfig     `yaml:"mysql"`
+		Service     []serviceConfig `yaml:"service"`
+	} `yaml:"client"`
 }
 
-func (a *appConfig) getClientConfigs() []clientConfig {
+func (a *appConfig) getServiceConfigs() []serviceConfig {
 	if a == nil {
-		return []clientConfig{}
+		return []serviceConfig{}
 	}
 
-	clientConfigs := make([]clientConfig, 0, len(a.Database.CliConfig))
-	for _, v := range a.Database.CliConfig {
+	serviceConfigs := make([]serviceConfig, 0, len(a.Client.Service))
+	for _, v := range a.Client.Service {
 		if v.MaxIdle == 0 {
-			v.MaxIdle = a.Database.MySQLConfig.MaxIdle
+			v.MaxIdle = a.Client.MySQLConfig.MaxIdle
 		}
 
 		if v.MaxOpen == 0 {
-			v.MaxOpen = a.Database.MySQLConfig.MaxOpen
+			v.MaxOpen = a.Client.MySQLConfig.MaxOpen
 		}
 
 		if v.MaxIdleTime == 0 {
-			v.MaxIdleTime = a.Database.MySQLConfig.MaxIdleTime
+			v.MaxIdleTime = a.Client.MySQLConfig.MaxIdleTime
 		}
 
-		clientConfigs = append(clientConfigs, v)
+		serviceConfigs = append(serviceConfigs, v)
 	}
 
-	return clientConfigs
+	return serviceConfigs
 }
 
 type mysqlConfig struct {
@@ -62,7 +62,7 @@ type mysqlConfig struct {
 	MaxIdleTime int `yaml:"max_idle_time"`
 }
 
-type clientConfig struct {
+type serviceConfig struct {
 	Name string `yaml:"name"`
 	DSN  string `yaml:"dsn"`
 
@@ -83,22 +83,22 @@ func loadAppConfig() (*appConfig, error) {
 	return c, nil
 }
 
-func registerClientConfig(c clientConfig) {
-	clientConfigMu.Lock()
-	defer clientConfigMu.Unlock()
-	clientConfigMap[c.Name] = c
+func registerServiceConfig(c serviceConfig) {
+	serviceConfigMu.Lock()
+	defer serviceConfigMu.Unlock()
+	serviceConfigMap[c.Name] = c
 }
 
-func getClientConfig(name string) clientConfig {
-	clientConfigMu.Lock()
-	defer clientConfigMu.Unlock()
+func getServiceConfig(name string) serviceConfig {
+	serviceConfigMu.Lock()
+	defer serviceConfigMu.Unlock()
 
-	c, exist := clientConfigMap[name]
+	c, exist := serviceConfigMap[name]
 	if !exist {
-		c = clientConfig{
+		c = serviceConfig{
 			Name: name,
 		}
-		clientConfigMap[name] = c
+		serviceConfigMap[name] = c
 	}
 
 	return c

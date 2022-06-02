@@ -28,7 +28,7 @@ type Option func(*mysqlBuilder)
 // WithDSN set dsn
 func WithDSN(dsn string) Option {
 	return func(b *mysqlBuilder) {
-		b.cliConfig.DSN = dsn
+		b.cfg.DSN = dsn
 	}
 }
 
@@ -39,7 +39,7 @@ func WithDSN(dsn string) Option {
 // then the new MaxIdleConns will be reduced to match the MaxOpenConns limit.
 func WithMaxIdle(maxIdel int) Option {
 	return func(b *mysqlBuilder) {
-		b.cliConfig.MaxIdle = maxIdel
+		b.cfg.MaxIdle = maxIdel
 	}
 }
 
@@ -50,7 +50,7 @@ func WithMaxIdle(maxIdel int) Option {
 // MaxOpenConns limit.
 func WithMaxOpen(maxOpen int) Option {
 	return func(b *mysqlBuilder) {
-		b.cliConfig.MaxOpen = maxOpen
+		b.cfg.MaxOpen = maxOpen
 	}
 }
 
@@ -60,6 +60,6 @@ func WithMaxOpen(maxOpen int) Option {
 // Uint: milliseconds
 func WithMaxIdleTime(maxIdelTime int) Option {
 	return func(b *mysqlBuilder) {
-		b.cliConfig.MaxIdleTime = maxIdelTime
+		b.cfg.MaxIdleTime = maxIdelTime
 	}
 }

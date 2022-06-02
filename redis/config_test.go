@@ -7,7 +7,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	r1, exist := clientConfigMap["redis_1"]
+	r1, exist := serviceConfigMap["redis_1"]
 	assert.True(t, exist, "redis_1 should exist")
 	assert.Equal(t, "redis_1", r1.Name)
 	assert.Equal(t, "redis://username:password@127.0.0.1:6379/1?timeout=1000ms", r1.DSN)
@@ -17,7 +17,7 @@ func TestInit(t *testing.T) {
 	assert.Equal(t, 180000, r1.IdleTimeout)
 	assert.Equal(t, 1000, r1.Timeout)
 
-	r2, exist := clientConfigMap["redis_2"]
+	r2, exist := serviceConfigMap["redis_2"]
 	assert.True(t, exist, "redis_2 should exist")
 	assert.Equal(t, "redis_2", r2.Name)
 	assert.Equal(t, "redis://username:password@127.0.0.1:6379/2?timeout=1000ms", r2.DSN)
