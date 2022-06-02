@@ -13,7 +13,7 @@ import (
 
 func Test_gormBuilder_build(t *testing.T) {
 	type fields struct {
-		dbConfig   clientConfig
+		dbConfig   serviceConfig
 		gormConfig gorm.Config
 	}
 	tests := []struct {
@@ -27,7 +27,7 @@ func Test_gormBuilder_build(t *testing.T) {
 			name:    "invalid driver",
 			wantErr: true,
 			fields: fields{
-				dbConfig: clientConfig{
+				dbConfig: serviceConfig{
 					Driver: "test driver",
 				},
 			},
@@ -36,7 +36,7 @@ func Test_gormBuilder_build(t *testing.T) {
 			name:    "open fail",
 			wantErr: true,
 			fields: fields{
-				dbConfig: clientConfig{
+				dbConfig: serviceConfig{
 					Driver: "mysql",
 				},
 			},
@@ -46,7 +46,7 @@ func Test_gormBuilder_build(t *testing.T) {
 			name:    "get db fail",
 			wantErr: true,
 			fields: fields{
-				dbConfig: clientConfig{
+				dbConfig: serviceConfig{
 					Driver: "mysql",
 				},
 			},
@@ -56,7 +56,7 @@ func Test_gormBuilder_build(t *testing.T) {
 			name:    "normal",
 			wantErr: false,
 			fields: fields{
-				dbConfig: clientConfig{
+				dbConfig: serviceConfig{
 					Name:   "test",
 					Driver: "mysql",
 				},

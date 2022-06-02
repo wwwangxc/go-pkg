@@ -15,12 +15,12 @@ var (
 )
 
 type redisBuilder struct {
-	cliConfig clientConfig
+	cliConfig serviceConfig
 }
 
 func newRedisBuilder(name string, opts ...ClientOption) *redisBuilder {
 	builder := &redisBuilder{
-		cliConfig: getClientConfig(name),
+		cliConfig: getserviceConfig(name),
 	}
 
 	for _, opt := range opts {

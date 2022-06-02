@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	clientConfigMap = map[string]clientConfig{}
-	clientConfigMu  sync.Mutex
+	serviceConfigMap = map[string]serviceConfig{}
+	serviceConfigMu  sync.Mutex
 )
 
 func init() {
@@ -19,29 +19,29 @@ func init() {
 		return
 	}
 
-	for _, v := range c.getClientConfigs() {
-		registerClientConfig(v)
+	for _, v := range c.getServiceConfigs() {
+		registerServiceConfig(v)
 	}
 }
 
 type appConfig struct {
-	Database struct {
-		MySQL      dbConfig       `json:"mysql"`
-		PostgreSQL dbConfig       `json:"postgresql"`
-		SQLite     dbConfig       `json:"sqlite"`
-		SQLServer  dbConfig       `json:"sqlserver"`
-		Clickhouse dbConfig       `json:"clickhouse"`
-		CliConfig  []clientConfig `yaml:"client" json:"cli_config"`
-	} `yaml:"database" json:"database"`
+	Client struct {
+		MySQL      dbConfig        `yaml:"mysql"`
+		PostgreSQL dbConfig        `yaml:"postgresql"`
+		SQLite     dbConfig        `yaml:"sqlite"`
+		SQLServer  dbConfig        `yaml:"sqlserver"`
+		Clickhouse dbConfig        `yaml:"clickhouse"`
+		Service    []serviceConfig `yaml:"service"`
+	} `yaml:"client"`
 }
 
-func (a *appConfig) getClientConfigs() []clientConfig {
+func (a *appConfig) getServiceConfigs() []serviceConfig {
 	if a == nil {
-		return []clientConfig{}
+		return []serviceConfig{}
 	}
 
-	clientConfigs := make([]clientConfig, 0, len(a.Database.CliConfig))
-	for _, v := range a.Database.CliConfig {
+	serviceConfigs := make([]serviceConfig, 0, len(a.Client.Service))
+	for _, v := range a.Client.Service {
 		dbCfg := a.getDBConfig(v.Driver)
 		if v.MaxIdle == 0 {
 			v.MaxIdle = dbCfg.MaxIdle
@@ -55,24 +55,24 @@ func (a *appConfig) getClientConfigs() []clientConfig {
 			v.MaxIdleTime = dbCfg.MaxIdleTime
 		}
 
-		clientConfigs = append(clientConfigs, v)
+		serviceConfigs = append(serviceConfigs, v)
 	}
 
-	return clientConfigs
+	return serviceConfigs
 }
 
 func (a *appConfig) getDBConfig(driver string) dbConfig {
 	switch driver {
 	case "mysql":
-		return a.Database.MySQL
+		return a.Client.MySQL
 	case "postgresql":
-		return a.Database.PostgreSQL
+		return a.Client.PostgreSQL
 	case "sqlite":
-		return a.Database.SQLite
+		return a.Client.SQLite
 	case "sqlserver":
-		return a.Database.SQLServer
+		return a.Client.SQLServer
 	case "clickhouse":
-		return a.Database.Clickhouse
+		return a.Client.Clickhouse
 	default:
 		return dbConfig{}
 	}
@@ -84,7 +84,7 @@ type dbConfig struct {
 	MaxIdleTime int `yaml:"max_idle_time"`
 }
 
-type clientConfig struct {
+type serviceConfig struct {
 	Name   string `yaml:"name"`
 	DSN    string `yaml:"dsn"`
 	Driver string `yaml:"driver"`
@@ -106,23 +106,23 @@ func loadAppConfig() (*appConfig, error) {
 	return c, nil
 }
 
-func registerClientConfig(c clientConfig) {
-	clientConfigMu.Lock()
-	defer clientConfigMu.Unlock()
-	clientConfigMap[c.Name] = c
+func registerServiceConfig(c serviceConfig) {
+	serviceConfigMu.Lock()
+	defer serviceConfigMu.Unlock()
+	serviceConfigMap[c.Name] = c
 }
 
-func getClientConfig(name string) clientConfig {
-	clientConfigMu.Lock()
-	defer clientConfigMu.Unlock()
+func getServiceConfig(name string) serviceConfig {
+	serviceConfigMu.Lock()
+	defer serviceConfigMu.Unlock()
 
-	c, exist := clientConfigMap[name]
+	c, exist := serviceConfigMap[name]
 	if !exist {
-		c = clientConfig{
+		c = serviceConfig{
 			Name:   name,
 			Driver: "mysql",
 		}
-		clientConfigMap[name] = c
+		serviceConfigMap[name] = c
 	}
 
 	return c

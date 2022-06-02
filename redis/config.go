@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	clientConfigMap = map[string]clientConfig{}
-	clientConfigMu  sync.Mutex
+	serviceConfigMap = map[string]serviceConfig{}
+	serviceConfigMu  sync.Mutex
 )
 
 func init() {
@@ -19,45 +19,45 @@ func init() {
 		return
 	}
 
-	for _, v := range c.getClientConfigs() {
-		registerClientConfig(v)
+	for _, v := range c.getServiceConfigs() {
+		registerServiceConfig(v)
 	}
 }
 
 type appConfig struct {
-	Database struct {
-		RedisCfg redisConfig    `yaml:"redis"`
-		Client   []clientConfig `yaml:"client"`
-	} `yaml:"database"`
+	Client struct {
+		RedisCfg redisConfig     `yaml:"redis"`
+		Service  []serviceConfig `yaml:"service"`
+	} `yaml:"client"`
 }
 
-func (a *appConfig) getClientConfigs() []clientConfig {
+func (a *appConfig) getServiceConfigs() []serviceConfig {
 	if a == nil {
-		return []clientConfig{}
+		return []serviceConfig{}
 	}
 
-	clientConfigs := make([]clientConfig, 0, len(a.Database.Client))
-	for _, v := range a.Database.Client {
-		v.Wait = a.Database.RedisCfg.Wait
+	clientConfigs := make([]serviceConfig, 0, len(a.Client.Service))
+	for _, v := range a.Client.Service {
+		v.Wait = a.Client.RedisCfg.Wait
 
 		if v.MaxIdle == 0 {
-			v.MaxIdle = a.Database.RedisCfg.MaxIdle
+			v.MaxIdle = a.Client.RedisCfg.MaxIdle
 		}
 
 		if v.MaxActive == 0 {
-			v.MaxActive = a.Database.RedisCfg.MaxActive
+			v.MaxActive = a.Client.RedisCfg.MaxActive
 		}
 
 		if v.IdleTimeout == 0 {
-			v.IdleTimeout = a.Database.RedisCfg.IdleTimeout
+			v.IdleTimeout = a.Client.RedisCfg.IdleTimeout
 		}
 
 		if v.MaxConnLifetime == 0 {
-			v.MaxConnLifetime = a.Database.RedisCfg.MaxConnLifetime
+			v.MaxConnLifetime = a.Client.RedisCfg.MaxConnLifetime
 		}
 
 		if v.Timeout == 0 {
-			v.Timeout = a.Database.RedisCfg.Timeout
+			v.Timeout = a.Client.RedisCfg.Timeout
 		}
 
 		clientConfigs = append(clientConfigs, v)
@@ -75,7 +75,7 @@ type redisConfig struct {
 	Wait            bool `yaml:"wait"`
 }
 
-type clientConfig struct {
+type serviceConfig struct {
 	Name string `yaml:"name"`
 	DSN  string `yaml:"dsn"`
 
@@ -96,19 +96,19 @@ func loadAppConfig() (*appConfig, error) {
 	return c, nil
 }
 
-func registerClientConfig(c clientConfig) {
-	clientConfigMu.Lock()
-	defer clientConfigMu.Unlock()
-	clientConfigMap[c.Name] = c
+func registerServiceConfig(c serviceConfig) {
+	serviceConfigMu.Lock()
+	defer serviceConfigMu.Unlock()
+	serviceConfigMap[c.Name] = c
 }
 
-func getClientConfig(name string) clientConfig {
-	clientConfigMu.Lock()
-	defer clientConfigMu.Unlock()
+func getserviceConfig(name string) serviceConfig {
+	serviceConfigMu.Lock()
+	defer serviceConfigMu.Unlock()
 
-	c, exist := clientConfigMap[name]
+	c, exist := serviceConfigMap[name]
 	if !exist {
-		c = clientConfig{
+		c = serviceConfig{
 			Name: name,
 			redisConfig: redisConfig{
 				MaxIdle:         2048,
@@ -119,7 +119,7 @@ func getClientConfig(name string) clientConfig {
 				Wait:            false,
 			},
 		}
-		clientConfigMap[name] = c
+		serviceConfigMap[name] = c
 	}
 
 	return c

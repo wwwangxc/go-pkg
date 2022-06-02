@@ -196,7 +196,7 @@ func main() {
 ### Config
 
 ```yaml
-database:
+client:
   redis:
     max_idle: 20
     max_active: 100
@@ -204,7 +204,7 @@ database:
     idle_timeout: 180000
     timeout: 1000
     wait: true
-  client:
+  service:
     - name: redis_1
       dsn: redis://username:password@127.0.0.1:6379/1?timeout=1000ms
     - name: redis_2
