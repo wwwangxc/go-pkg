@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	register(&sqlserverDriver{})
+	register(NameSQLServer, &sqlserverDriver{})
 }
 
 type sqlserverDriver struct{}
@@ -14,8 +14,4 @@ type sqlserverDriver struct{}
 // Open return GORM sqlserver dialector
 func (s *sqlserverDriver) Open(dsn string) gorm.Dialector {
 	return sqlserver.Open(dsn)
-}
-
-func (s *sqlserverDriver) name() string {
-	return "sqlserver"
 }

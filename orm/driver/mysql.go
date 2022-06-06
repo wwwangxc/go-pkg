@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	register(&mysqlDriver{})
+	register(NameMySQL, &mysqlDriver{})
 }
 
 type mysqlDriver struct{}
@@ -14,8 +14,4 @@ type mysqlDriver struct{}
 // Open return GORM mysql dialector
 func (m *mysqlDriver) Open(dsn string) gorm.Dialector {
 	return mysql.Open(dsn)
-}
-
-func (m *mysqlDriver) name() string {
-	return "mysql"
 }
