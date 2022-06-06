@@ -1,0 +1,10 @@
+client:
+  service:
+    - name: etcd1
+      target: 127.0.0.1:2379,127.0.0.1:2380
+      timeout: 1000
+      username: username
+      password: password
+      tls_key: /usr/local/etcd_conf/key.pem
+      tls_cert: /usr/local/etcd_conf/cert.pem
+      ca_cert: /usr/local/etcd_conf/cacert.pem
