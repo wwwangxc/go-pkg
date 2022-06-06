@@ -70,7 +70,7 @@ type serviceConfig struct {
 }
 
 func loadAppConfig() (*appConfig, error) {
-	configure, err := config.Load("./go-pkg.yaml")
+	configure, err := config.Load("./app.yaml")
 	if err != nil {
 		return &appConfig{}, nil
 	}

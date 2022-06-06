@@ -3,7 +3,6 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -55,24 +54,26 @@ type ClientProxy interface {
 }
 
 type clientProxyImpl struct {
-	db *sql.DB
+	name string
+	opts []Option
 }
 
 // NewClientProxy new myql client proxy
-func NewClientProxy(name string, opts ...Option) (ClientProxy, error) {
-	db, err := newMySQLBuilder(name, opts...).build()
-	if err != nil {
-		return nil, fmt.Errorf("build db fail. error:%v", err)
-	}
-
+func NewClientProxy(name string, opts ...Option) ClientProxy {
 	return &clientProxyImpl{
-		db: db,
-	}, nil
+		name: name,
+		opts: opts,
+	}
 }
 
 // Exec executes a query without returning any rows
 func (c *clientProxyImpl) Exec(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	return c.db.ExecContext(ctx, query, args)
+	db, err := c.getDB()
+	if err != nil {
+		return nil, err
+	}
+
+	return db.ExecContext(ctx, query, args)
 }
 
 // Transaction auto start and commit transcation
@@ -85,7 +86,12 @@ func (c *clientProxyImpl) Transaction(ctx context.Context, f TxFunc, opts ...TxO
 		opt(txOpts)
 	}
 
-	tx, err := c.db.BeginTx(ctx, txOpts)
+	db, err := c.getDB()
+	if err != nil {
+		return err
+	}
+
+	tx, err := db.BeginTx(ctx, txOpts)
 	if err != nil {
 		return err
 	}
@@ -114,7 +120,12 @@ func (c *clientProxyImpl) Transaction(ctx context.Context, f TxFunc, opts ...TxO
 // The args are for any placeholder parameters in the query.
 // Loop executes scan function when returns rows not empty.
 func (c *clientProxyImpl) Query(ctx context.Context, f ScanFunc, query string, args ...interface{}) error {
-	rows, err := c.db.QueryContext(ctx, query, args...)
+	db, err := c.getDB()
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}
@@ -135,7 +146,12 @@ func (c *clientProxyImpl) Query(ctx context.Context, f ScanFunc, query string, a
 // If more than one row matches the query, will uses the first row and discards the rest.
 // sql.ErrNoRows is returned if the result set is empty.
 func (c *clientProxyImpl) QueryRow(ctx context.Context, dest []interface{}, query string, args ...interface{}) error {
-	row := c.db.QueryRowContext(ctx, query, args...)
+	db, err := c.getDB()
+	if err != nil {
+		return err
+	}
+
+	row := db.QueryRowContext(ctx, query, args...)
 	if err := row.Scan(dest...); err != nil {
 		return err
 	}
@@ -148,7 +164,12 @@ func (c *clientProxyImpl) QueryRow(ctx context.Context, dest []interface{}, quer
 //
 // If you have null fields and use SELECT *, you must use sql.Null* in your struct.
 func (c *clientProxyImpl) Select(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	rows, err := c.db.QueryContext(ctx, query, args...)
+	db, err := c.getDB()
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}
@@ -163,5 +184,14 @@ func (c *clientProxyImpl) Select(ctx context.Context, dest interface{}, query st
 // If you have null fields and use SELECT *, you must use sql.Null* in your struct.
 // sql.ErrNoRows is returned if the result set is empty.
 func (c *clientProxyImpl) Get(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	return sqlx.NewDb(c.db, "mysql").GetContext(ctx, dest, query, args...)
+	db, err := c.getDB()
+	if err != nil {
+		return err
+	}
+
+	return sqlx.NewDb(db, "mysql").GetContext(ctx, dest, query, args...)
+}
+
+func (c *clientProxyImpl) getDB() (*sql.DB, error) {
+	return getDB(c.name, c.opts...)
 }
