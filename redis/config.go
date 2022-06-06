@@ -83,7 +83,7 @@ type serviceConfig struct {
 }
 
 func loadAppConfig() (*appConfig, error) {
-	configure, err := config.Load("./go-pkg.yaml")
+	configure, err := config.Load("./app.yaml")
 	if err != nil {
 		return &appConfig{}, nil
 	}
@@ -102,7 +102,7 @@ func registerServiceConfig(c serviceConfig) {
 	serviceConfigMap[c.Name] = c
 }
 
-func getserviceConfig(name string) serviceConfig {
+func getServiceConfig(name string) serviceConfig {
 	serviceConfigMu.Lock()
 	defer serviceConfigMu.Unlock()
 

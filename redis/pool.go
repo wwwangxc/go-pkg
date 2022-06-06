@@ -14,44 +14,37 @@ var (
 	poolsRW sync.RWMutex
 )
 
-type redisBuilder struct {
-	cliConfig serviceConfig
-}
-
-func newRedisBuilder(name string, opts ...ClientOption) *redisBuilder {
-	builder := &redisBuilder{
-		cliConfig: getserviceConfig(name),
-	}
-
-	for _, opt := range opts {
-		opt(builder)
-	}
-
-	return builder
-}
-
-func (r *redisBuilder) build() *redigo.Pool {
+func getRedisPool(name string, opts ...ClientOption) *redigo.Pool {
 	poolsRW.RLock()
-	pool, ok := pools[r.cliConfig.Name]
+	pool, ok := pools[name]
 	poolsRW.RUnlock()
 	if ok {
 		return pool
 	}
 
+	cfg := getServiceConfig(name)
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	return newRedisPool(&cfg)
+}
+
+func newRedisPool(cfg *serviceConfig) *redigo.Pool {
 	poolsRW.Lock()
 	defer poolsRW.Unlock()
 
-	pool, ok = pools[r.cliConfig.Name]
+	pool, ok := pools[cfg.Name]
 	if ok {
 		return pool
 	}
 
-	timeout := time.Duration(r.cliConfig.Timeout) * time.Millisecond
+	timeout := time.Duration(cfg.Timeout) * time.Millisecond
 	pool = &redigo.Pool{
-		MaxIdle:         r.cliConfig.MaxIdle,
-		MaxActive:       r.cliConfig.MaxActive,
-		IdleTimeout:     time.Duration(r.cliConfig.IdleTimeout) * time.Millisecond,
-		MaxConnLifetime: time.Duration(r.cliConfig.MaxConnLifetime) * time.Millisecond,
+		MaxIdle:         cfg.MaxIdle,
+		MaxActive:       cfg.MaxActive,
+		IdleTimeout:     time.Duration(cfg.IdleTimeout) * time.Millisecond,
+		MaxConnLifetime: time.Duration(cfg.MaxConnLifetime) * time.Millisecond,
 		Dial: func() (redigo.Conn, error) {
 			dialOpts := []redigo.DialOption{
 				redigo.DialWriteTimeout(timeout),
@@ -65,7 +58,7 @@ func (r *redisBuilder) build() *redigo.Pool {
 				}),
 			}
 
-			c, err := redigo.DialURL(r.cliConfig.DSN, dialOpts...)
+			c, err := redigo.DialURL(cfg.DSN, dialOpts...)
 			if err != nil {
 				return nil, err
 			}
@@ -79,9 +72,9 @@ func (r *redisBuilder) build() *redigo.Pool {
 			_, err := c.Do("PING")
 			return err
 		},
-		Wait: r.cliConfig.Wait,
+		Wait: cfg.Wait,
 	}
 
-	pools[r.cliConfig.Name] = pool
+	pools[cfg.Name] = pool
 	return pool
 }
