@@ -32,13 +32,15 @@ type ClientProxy interface {
 }
 
 type clientProxyImpl struct {
-	pool *redigo.Pool
+	name string
+	opts []ClientOption
 }
 
 // NewClientProxy new redis client proxy
 func NewClientProxy(name string, opts ...ClientOption) ClientProxy {
 	return &clientProxyImpl{
-		pool: newRedisBuilder(name, opts...).build(),
+		name: name,
+		opts: opts,
 	}
 }
 
@@ -50,7 +52,7 @@ func NewClientProxy(name string, opts ...ClientOption) ClientProxy {
 // ctx timeout return err context.DeadlineExceeded.
 // ctx canceled return err context.Canceled.
 func (c *clientProxyImpl) Do(ctx context.Context, cmd string, args ...interface{}) (interface{}, error) {
-	conn := c.pool.Get()
+	conn := c.GetConn()
 	defer func() {
 		if err := conn.Close(); err != nil {
 			logErrorf("connect close fail. error:%v", err)
@@ -66,15 +68,19 @@ func (c *clientProxyImpl) Do(ctx context.Context, cmd string, args ...interface{
 // getting an underlying connection, then the connection Err, Do, Send, Flush
 // and Receive methods return that error.
 func (c *clientProxyImpl) GetConn() redigo.Conn {
-	return c.pool.Get()
+	return c.getPool().Get()
 }
 
 // GetLocker gets a distributed lock provider
 func (c *clientProxyImpl) GetLocker() Locker {
-	return newLocker(c)
+	return NewLocker(c.name, c.opts...)
 }
 
 // GetFetcher gets an object fetcher
 func (c *clientProxyImpl) GetFetcher() Fetcher {
-	return newFetcher(c)
+	return NewFetcher(c.name, c.opts...)
+}
+
+func (c *clientProxyImpl) getPool() *redigo.Pool {
+	return getRedisPool(c.name, c.opts...)
 }

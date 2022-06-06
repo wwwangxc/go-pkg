@@ -8,12 +8,12 @@ import (
 )
 
 // ClientOption redis client proxy option
-type ClientOption func(*redisBuilder)
+type ClientOption func(*serviceConfig)
 
 // WithClientDSN set dsn
 func WithClientDSN(dsn string) ClientOption {
-	return func(b *redisBuilder) {
-		b.cliConfig.DSN = dsn
+	return func(b *serviceConfig) {
+		b.DSN = dsn
 	}
 }
 
@@ -22,8 +22,8 @@ func WithClientDSN(dsn string) ClientOption {
 // Maximum number of connections in the idle connection pool.
 // Default 2048
 func WithClientMaxIdle(maxIdle int) ClientOption {
-	return func(b *redisBuilder) {
-		b.cliConfig.MaxIdle = maxIdle
+	return func(b *serviceConfig) {
+		b.MaxIdle = maxIdle
 	}
 }
 
@@ -33,8 +33,8 @@ func WithClientMaxIdle(maxIdle int) ClientOption {
 // When zero, there is no limit on the number of connections in the pool.
 // Default 0
 func WithClientMaxActive(maxActive int) ClientOption {
-	return func(b *redisBuilder) {
-		b.cliConfig.MaxActive = maxActive
+	return func(b *serviceConfig) {
+		b.MaxActive = maxActive
 	}
 }
 
@@ -45,8 +45,8 @@ func WithClientMaxActive(maxActive int) ClientOption {
 // the timeout to a value less than the server's timeout.
 // Unit millisecond, default 180000
 func WithClientIdleTimeout(idleTimeout int) ClientOption {
-	return func(b *redisBuilder) {
-		b.cliConfig.IdleTimeout = idleTimeout
+	return func(b *serviceConfig) {
+		b.IdleTimeout = idleTimeout
 	}
 }
 
@@ -56,8 +56,8 @@ func WithClientIdleTimeout(idleTimeout int) ClientOption {
 // the pool does not close connections based on age.
 // Unit millisecond, default 0
 func WithClientMaxConnLifetime(maxConnLifetime int) ClientOption {
-	return func(b *redisBuilder) {
-		b.cliConfig.MaxConnLifetime = maxConnLifetime
+	return func(b *serviceConfig) {
+		b.MaxConnLifetime = maxConnLifetime
 	}
 }
 
@@ -66,8 +66,8 @@ func WithClientMaxConnLifetime(maxConnLifetime int) ClientOption {
 // Write, read and connect timeout
 // Unit millisecond, default 1000
 func WithClientTimeout(timeout int) ClientOption {
-	return func(b *redisBuilder) {
-		b.cliConfig.Timeout = timeout
+	return func(b *serviceConfig) {
+		b.Timeout = timeout
 	}
 }
 
@@ -76,8 +76,8 @@ func WithClientTimeout(timeout int) ClientOption {
 // If Wait is true and the pool is at the MaxActive limit, then Get() waits
 // for a connection to be returned to the pool before returning.
 func WithClientWait(wait bool) ClientOption {
-	return func(b *redisBuilder) {
-		b.cliConfig.Wait = wait
+	return func(b *serviceConfig) {
+		b.Wait = wait
 	}
 }
 

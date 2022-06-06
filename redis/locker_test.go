@@ -12,9 +12,6 @@ import (
 )
 
 func Test_lockerImpl_TryLock(t *testing.T) {
-	type fields struct {
-		cli ClientProxy
-	}
 	type args struct {
 		ctx  context.Context
 		key  string
@@ -22,7 +19,6 @@ func Test_lockerImpl_TryLock(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		want    string
 		wantErr bool
@@ -66,7 +62,7 @@ func Test_lockerImpl_TryLock(t *testing.T) {
 				})
 
 			l := &lockerImpl{
-				cli: NewClientProxy("client_name"),
+				name: "client_name",
 			}
 			_, err := l.TryLock(tt.args.ctx, tt.args.key, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
@@ -78,9 +74,6 @@ func Test_lockerImpl_TryLock(t *testing.T) {
 }
 
 func Test_lockerImpl_Lock(t *testing.T) {
-	type fields struct {
-		cli ClientProxy
-	}
 	type args struct {
 		ctx  context.Context
 		key  string
@@ -88,7 +81,6 @@ func Test_lockerImpl_Lock(t *testing.T) {
 	}
 	tests := []struct {
 		name       string
-		fields     fields
 		args       args
 		want       string
 		wantErr    bool
@@ -107,7 +99,7 @@ func Test_lockerImpl_Lock(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			l := &lockerImpl{
-				cli: tt.fields.cli,
+				name: "client_name",
 			}
 
 			patches := gomonkey.ApplyMethod(reflect.TypeOf(l), "TryLock",
@@ -129,9 +121,6 @@ func Test_lockerImpl_Lock(t *testing.T) {
 }
 
 func Test_lockerImpl_Unlock(t *testing.T) {
-	type fields struct {
-		cli ClientProxy
-	}
 	type args struct {
 		ctx  context.Context
 		key  string
@@ -139,7 +128,6 @@ func Test_lockerImpl_Unlock(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 		intRet  int
@@ -196,7 +184,7 @@ func Test_lockerImpl_Unlock(t *testing.T) {
 					return tt.intRet, tt.intErr
 				})
 			l := &lockerImpl{
-				cli: NewClientProxy("client_name"),
+				name: "client_name",
 			}
 
 			err := l.Unlock(tt.args.ctx, tt.args.key, tt.args.uuid)
