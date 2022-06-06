@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	// go-pkg/mysql will automatically read configuration
-	// files (./go-pkg.yaml) when package loaded
+	// files (./app.yaml) when package loaded
 	"github.com/wwwangxc/go-pkg/mysql"
 )
 
@@ -17,11 +17,7 @@ func main() {
 	// mysql.WithMaxIdle(20): sets the maximum number of connections in the idle connection pool.
 	// mysql.WithMaxIdleTime(1000) sets the maximum amount of time a connection may be reused. uint: milliseconds
 	// mysql.WithMaxOpen(20) sets the maximum number of open connections to the database.
-	cli, err := mysql.NewClientProxy("client1", mysql.WithDSN(""), mysql.WithMaxIdle(20), mysql.WithMaxIdleTime(1000), mysql.WithMaxOpen(20))
-	if err != nil {
-		fmt.Printf("new client proxy fail. error:%v", err)
-		return
-	}
+	cli := mysql.NewClientProxy("client1", mysql.WithDSN(""), mysql.WithMaxIdle(20), mysql.WithMaxIdleTime(1000), mysql.WithMaxOpen(20))
 
 	// Insert
 	result, err := cli.Exec(context.TODO(), "INSERT INTO user (name) VALUES (?)", "wwwangxc")

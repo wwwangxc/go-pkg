@@ -14,13 +14,11 @@ import (
 )
 
 func Test_clientProxyImpl_Transaction(t *testing.T) {
+	errGetDB := errors.New("get db fail")
 	errBeginTx := errors.New("begin transaction fail")
 	errTxFunc := errors.New("exec tx func fail")
 	errCommit := errors.New("commit fail")
 	errRollback := errors.New("rollback fail")
-	type fields struct {
-		db *sql.DB
-	}
 	type args struct {
 		ctx  context.Context
 		f    TxFunc
@@ -28,20 +26,23 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 	}
 	tests := []struct {
 		name        string
-		fields      fields
 		args        args
 		wantErr     bool
 		want        error
+		getDBErr    error
 		beginTxErr  error
 		commitErr   error
 		rollbackErr error
 	}{
 		{
+			name:     "get db fail",
+			wantErr:  true,
+			getDBErr: errGetDB,
+			want:     errGetDB,
+		},
+		{
 			name:    "begin transaction fail",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 			},
@@ -51,9 +52,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 		{
 			name:    "exec tx func fail",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 				f: func(t *sql.Tx) error {
@@ -65,9 +63,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 		{
 			name:    "rollback fail affter tx func",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 				f: func(t *sql.Tx) error {
@@ -80,9 +75,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 		{
 			name:    "commit fail",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 				f: func(t *sql.Tx) error {
@@ -95,9 +87,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 		{
 			name:    "rollback fail after commit",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 				f: func(t *sql.Tx) error {
@@ -111,9 +100,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 		{
 			name:    "normal",
 			wantErr: false,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 				f: func(t *sql.Tx) error {
@@ -125,7 +111,8 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			patches := gomonkey.ApplyMethod(reflect.TypeOf(tt.fields.db), "BeginTx",
+			var db *sql.DB
+			patches := gomonkey.ApplyMethod(reflect.TypeOf(db), "BeginTx",
 				func(*sql.DB, context.Context, *sql.TxOptions) (*sql.Tx, error) {
 					return &sql.Tx{}, tt.beginTxErr
 				})
@@ -142,10 +129,12 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 					return tt.rollbackErr
 				})
 
-			c := &clientProxyImpl{
-				db: tt.fields.db,
-			}
+			patches.ApplyFunc(getDB,
+				func(string, ...Option) (*sql.DB, error) {
+					return &sql.DB{}, tt.getDBErr
+				})
 
+			c := &clientProxyImpl{}
 			err := c.Transaction(tt.args.ctx, tt.args.f, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("clientProxyImpl.Transaction() error = %v, wantErr %v", err, tt.wantErr)
@@ -157,9 +146,6 @@ func Test_clientProxyImpl_Transaction(t *testing.T) {
 }
 
 func Test_clientProxyImpl_Query(t *testing.T) {
-	type fields struct {
-		db *sql.DB
-	}
 	type args struct {
 		ctx   context.Context
 		f     ScanFunc
@@ -168,18 +154,20 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 	}
 	tests := []struct {
 		name            string
-		fields          fields
 		args            args
 		wantErr         bool
 		hasNext         bool
 		queryContextErr error
+		getDBErr        error
 	}{
+		{
+			name:     "get db fail",
+			wantErr:  true,
+			getDBErr: fmt.Errorf(""),
+		},
 		{
 			name:    "query context fail",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 			},
@@ -188,9 +176,6 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 		{
 			name:    "exec scan func fail",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 				f: func(r *sql.Rows) error {
@@ -202,9 +187,6 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 		{
 			name:    "normal",
 			wantErr: false,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 				f: func(r *sql.Rows) error {
@@ -216,7 +198,8 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			patches := gomonkey.ApplyMethod(reflect.TypeOf(tt.fields.db), "QueryContext",
+			var db *sql.DB
+			patches := gomonkey.ApplyMethod(reflect.TypeOf(db), "QueryContext",
 				func(*sql.DB, context.Context, string, ...interface{}) (*sql.Rows, error) {
 					return &sql.Rows{}, tt.queryContextErr
 				})
@@ -235,9 +218,12 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 					return nil
 				})
 
-			c := &clientProxyImpl{
-				db: tt.fields.db,
-			}
+			patches.ApplyFunc(getDB,
+				func(string, ...Option) (*sql.DB, error) {
+					return &sql.DB{}, tt.getDBErr
+				})
+
+			c := &clientProxyImpl{}
 			if err := c.Query(tt.args.ctx, tt.args.f, tt.args.query, tt.args.args...); (err != nil) != tt.wantErr {
 				t.Errorf("clientProxyImpl.Query() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -246,9 +232,6 @@ func Test_clientProxyImpl_Query(t *testing.T) {
 }
 
 func Test_clientProxyImpl_QueryRow(t *testing.T) {
-	type fields struct {
-		db *sql.DB
-	}
 	type args struct {
 		ctx   context.Context
 		dest  []interface{}
@@ -256,18 +239,20 @@ func Test_clientProxyImpl_QueryRow(t *testing.T) {
 		args  []interface{}
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-		scanErr error
+		name     string
+		args     args
+		wantErr  bool
+		scanErr  error
+		getDBErr error
 	}{
+		{
+			name:     "get db fail",
+			wantErr:  true,
+			getDBErr: fmt.Errorf(""),
+		},
 		{
 			name:    "scan fail",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 			},
@@ -276,9 +261,6 @@ func Test_clientProxyImpl_QueryRow(t *testing.T) {
 		{
 			name:    "normal",
 			wantErr: false,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 			},
@@ -286,7 +268,8 @@ func Test_clientProxyImpl_QueryRow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			patches := gomonkey.ApplyMethod(reflect.TypeOf(tt.fields.db), "QueryRowContext",
+			var db *sql.DB
+			patches := gomonkey.ApplyMethod(reflect.TypeOf(db), "QueryRowContext",
 				func(*sql.DB, context.Context, string, ...interface{}) *sql.Row {
 					return &sql.Row{}
 				})
@@ -298,9 +281,12 @@ func Test_clientProxyImpl_QueryRow(t *testing.T) {
 					return tt.scanErr
 				})
 
-			c := &clientProxyImpl{
-				db: tt.fields.db,
-			}
+			patches.ApplyFunc(getDB,
+				func(string, ...Option) (*sql.DB, error) {
+					return &sql.DB{}, tt.getDBErr
+				})
+
+			c := &clientProxyImpl{}
 			if err := c.QueryRow(tt.args.ctx, tt.args.dest, tt.args.query, tt.args.args...); (err != nil) != tt.wantErr {
 				t.Errorf("clientProxyImpl.QueryRow() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -309,9 +295,6 @@ func Test_clientProxyImpl_QueryRow(t *testing.T) {
 }
 
 func Test_clientProxyImpl_Select(t *testing.T) {
-	type fields struct {
-		db *sql.DB
-	}
 	type args struct {
 		ctx   context.Context
 		dest  interface{}
@@ -320,17 +303,19 @@ func Test_clientProxyImpl_Select(t *testing.T) {
 	}
 	tests := []struct {
 		name            string
-		fields          fields
 		args            args
 		wantErr         bool
 		queryContextErr error
+		getDBErr        error
 	}{
+		{
+			name:     "get db fail",
+			wantErr:  true,
+			getDBErr: fmt.Errorf(""),
+		},
 		{
 			name:    "query context fail",
 			wantErr: true,
-			fields: fields{
-				db: &sql.DB{},
-			},
 			args: args{
 				ctx: context.Background(),
 			},
@@ -339,7 +324,8 @@ func Test_clientProxyImpl_Select(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			patches := gomonkey.ApplyMethod(reflect.TypeOf(tt.fields.db), "QueryContext",
+			var db *sql.DB
+			patches := gomonkey.ApplyMethod(reflect.TypeOf(db), "QueryContext",
 				func(*sql.DB, context.Context, string, ...interface{}) (*sql.Rows, error) {
 					return &sql.Rows{}, tt.queryContextErr
 				})
@@ -351,9 +337,12 @@ func Test_clientProxyImpl_Select(t *testing.T) {
 					return nil
 				})
 
-			c := &clientProxyImpl{
-				db: tt.fields.db,
-			}
+			patches.ApplyFunc(getDB,
+				func(string, ...Option) (*sql.DB, error) {
+					return &sql.DB{}, tt.getDBErr
+				})
+
+			c := &clientProxyImpl{}
 			if err := c.Select(tt.args.ctx, tt.args.dest, tt.args.query, tt.args.args...); (err != nil) != tt.wantErr {
 				t.Errorf("clientProxyImpl.Select() error = %v, wantErr %v", err, tt.wantErr)
 			}
