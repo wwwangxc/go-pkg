@@ -18,17 +18,15 @@ type Fetcher interface {
 }
 
 type fetcherImpl struct {
-	cli ClientProxy
+	name string
+	opts []ClientOption
 }
 
 // NewFetcher new object fetcher
 func NewFetcher(name string, opts ...ClientOption) Fetcher {
-	return NewClientProxy(name, opts...).GetFetcher()
-}
-
-func newFetcher(cli ClientProxy) Fetcher {
 	return &fetcherImpl{
-		cli: cli,
+		name: name,
+		opts: opts,
 	}
 }
 
@@ -37,8 +35,14 @@ func newFetcher(cli ClientProxy) Fetcher {
 // Use json decode
 func (f *fetcherImpl) Fetch(ctx context.Context, key string, dest interface{}, opts ...FetchOption) error {
 	options := newFetchOptions(opts...)
+	conn := f.getConn()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			logErrorf("conn close fail. error:%v", err)
+		}
+	}()
 
-	data, err := Bytes(f.cli.Do(ctx, "GET", key))
+	data, err := Bytes(redigo.DoContext(conn, ctx, "GET", key))
 	if err != nil && !errors.Is(redigo.ErrNil, err) {
 		return err
 	}
@@ -54,11 +58,15 @@ func (f *fetcherImpl) Fetch(ctx context.Context, key string, dest interface{}, o
 			return err
 		}
 
-		_, err = f.cli.Do(ctx, "PSETEX", key, options.Expire.Milliseconds(), data)
+		_, err = redigo.DoContext(conn, ctx, "PSETEX", key, options.Expire.Milliseconds(), data)
 		if err != nil {
 			return err
 		}
 	}
 
 	return options.Unmarshal(data, dest)
+}
+
+func (f *fetcherImpl) getConn() redigo.Conn {
+	return getRedisPool(f.name, f.opts...).Get()
 }

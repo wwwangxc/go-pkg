@@ -41,17 +41,15 @@ type Locker interface {
 }
 
 type lockerImpl struct {
-	cli ClientProxy
+	name string
+	opts []ClientOption
 }
 
 // NewLocker new locker proxy
 func NewLocker(name string, opts ...ClientOption) Locker {
-	return NewClientProxy(name, opts...).GetLocker()
-}
-
-func newLocker(cli ClientProxy) Locker {
 	return &lockerImpl{
-		cli: cli,
+		name: name,
+		opts: opts,
 	}
 }
 
@@ -66,7 +64,8 @@ func (l *lockerImpl) TryLock(ctx context.Context, key string, opts ...LockOption
 	k := fmt.Sprintf("%s.lock", strings.TrimSuffix(key, ".lock"))
 	options := newLockOptions(opts...)
 	script := redigo.NewScript(1, luaScriptLock)
-	conn := l.cli.GetConn()
+
+	conn := l.getConn()
 	defer func() {
 		if err := conn.Close(); err != nil {
 			logErrorf("connect close fail. error:%v", err)
@@ -117,7 +116,8 @@ func (l *lockerImpl) Lock(ctx context.Context, key string, opts ...LockOption) (
 func (l *lockerImpl) Unlock(ctx context.Context, key, uuid string) error {
 	k := fmt.Sprintf("%s.lock", strings.TrimSuffix(key, ".lock"))
 	script := redigo.NewScript(1, luaScriptUnlock)
-	conn := l.cli.GetConn()
+
+	conn := l.getConn()
 	defer func() {
 		if err := conn.Close(); err != nil {
 			logErrorf("connect close fail. error:%v", err)
@@ -144,7 +144,7 @@ func (l *lockerImpl) Unlock(ctx context.Context, key, uuid string) error {
 }
 
 func (l *lockerImpl) sendLockHeartbeat(key string, expire, heartbeatInterval time.Duration) {
-	conn := l.cli.GetConn()
+	conn := l.getConn()
 	defer func() {
 		if err := conn.Close(); err != nil {
 			logErrorf("connect close fail. error:%v", err)
@@ -177,7 +177,7 @@ func (l *lockerImpl) sendLockHeartbeat(key string, expire, heartbeatInterval tim
 
 func (l *lockerImpl) waitUntilLock(ctx context.Context, key string, opts ...LockOption) (string, error) {
 	k := fmt.Sprintf("%s.lock", strings.TrimSuffix(key, ".lock"))
-	psc := redigo.PubSubConn{Conn: l.cli.GetConn()}
+	psc := redigo.PubSubConn{Conn: l.getConn()}
 	defer func() {
 		if err := psc.Close(); err != nil {
 			logErrorf("pub/sub connect close fail. error:%v", err)
@@ -199,4 +199,8 @@ func (l *lockerImpl) waitUntilLock(ctx context.Context, key string, opts ...Lock
 	case <-ch:
 		return l.Lock(ctx, key, opts...)
 	}
+}
+
+func (l *lockerImpl) getConn() redigo.Conn {
+	return getRedisPool(l.name, l.opts...).Get()
 }

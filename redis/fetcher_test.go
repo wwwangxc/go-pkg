@@ -85,7 +85,7 @@ func Test_fetcherImpl_Fetch(t *testing.T) {
 				})
 
 			f := &fetcherImpl{
-				cli: NewClientProxy("client_name"),
+				name: "client_name",
 			}
 			if err := f.Fetch(tt.args.ctx, tt.args.key, tt.args.dest, tt.args.opts...); (err != nil) != tt.wantErr {
 				t.Errorf("fetcherImpl.Fetch() error = %v, wantErr %v", err, tt.wantErr)

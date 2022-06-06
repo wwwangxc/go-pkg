@@ -7,7 +7,7 @@ import (
 	"time"
 
 	// go-pkg/redis will automatically read configuration
-	// files (./go-pkg.yaml) when package loaded
+	// files (./app.yaml) when package loaded
 	"github.com/wwwangxc/go-pkg/redis"
 )
 
