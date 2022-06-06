@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	"github.com/wwwangxc/go-pkg/config"
+	"github.com/wwwangxc/go-pkg/orm/driver"
+	"gorm.io/gorm"
 )
 
 var (
@@ -61,17 +63,17 @@ func (a *appConfig) getServiceConfigs() []serviceConfig {
 	return serviceConfigs
 }
 
-func (a *appConfig) getDBConfig(driver string) dbConfig {
-	switch driver {
-	case "mysql":
+func (a *appConfig) getDBConfig(driverName string) dbConfig {
+	switch driverName {
+	case driver.NameMySQL:
 		return a.Client.MySQL
-	case "postgresql":
+	case driver.NamePostgreSQL, driver.NamePostgreSQLSimple:
 		return a.Client.PostgreSQL
-	case "sqlite":
+	case driver.NameSQLite:
 		return a.Client.SQLite
-	case "sqlserver":
+	case driver.NameSQLServer:
 		return a.Client.SQLServer
-	case "clickhouse":
+	case driver.NameClickhouse:
 		return a.Client.Clickhouse
 	default:
 		return dbConfig{}
@@ -85,15 +87,16 @@ type dbConfig struct {
 }
 
 type serviceConfig struct {
-	Name   string `yaml:"name"`
-	DSN    string `yaml:"dsn"`
-	Driver string `yaml:"driver"`
-
+	Name     string `yaml:"name"`
+	DSN      string `yaml:"dsn"`
+	Driver   string `yaml:"driver"`
 	dbConfig `yaml:",inline"`
+
+	gormConfig *gorm.Config `yaml:"-"`
 }
 
 func loadAppConfig() (*appConfig, error) {
-	configure, err := config.Load("./go-pkg.yaml")
+	configure, err := config.Load("./app.yaml")
 	if err != nil {
 		return &appConfig{}, nil
 	}

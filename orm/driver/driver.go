@@ -6,6 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	NameMySQL            = "mysql"
+	NamePostgreSQL       = "postgresql"
+	NamePostgreSQLSimple = "postgresql.simple"
+	NameSQLite           = "sqlite"
+	NameSQLServer        = "sqlserver"
+	NameClickhouse       = "clickhouse"
+)
+
 var (
 	driverMap   = map[string]Driver{}
 	driverMapRW sync.RWMutex
@@ -16,14 +25,12 @@ type Driver interface {
 
 	// Open return GORM database dialector
 	Open(dsn string) gorm.Dialector
-
-	name() string
 }
 
-func register(d Driver) {
+func register(name string, d Driver) {
 	driverMapRW.Lock()
 	defer driverMapRW.Unlock()
-	driverMap[d.name()] = d
+	driverMap[name] = d
 }
 
 // Get database driver

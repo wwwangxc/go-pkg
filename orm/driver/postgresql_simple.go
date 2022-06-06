@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	register(&postgreSimpleDriver{})
+	register(NamePostgreSQLSimple, &postgreSimpleDriver{})
 }
 
 type postgreSimpleDriver struct{}
@@ -19,8 +19,4 @@ func (p *postgreSimpleDriver) Open(dsn string) gorm.Dialector {
 		DSN:                  dsn,
 		PreferSimpleProtocol: true,
 	})
-}
-
-func (p *postgreSimpleDriver) name() string {
-	return "postgresql.simple"
 }

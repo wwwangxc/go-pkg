@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	register(&postgresqlDriver{})
+	register(NamePostgreSQL, &postgresqlDriver{})
 }
 
 type postgresqlDriver struct{}
@@ -16,8 +16,4 @@ type postgresqlDriver struct{}
 // automatically uses the extended protocol
 func (p *postgresqlDriver) Open(dsn string) gorm.Dialector {
 	return postgres.Open(dsn)
-}
-
-func (p *postgresqlDriver) name() string {
-	return "postgresql"
 }

@@ -2,13 +2,13 @@ package orm
 
 import "gorm.io/gorm"
 
-// GORMProxyOption GORM DB proxy option
-type GORMProxyOption func(*gormBuilder)
+// GORMOption GORM DB proxy option
+type GORMOption func(*serviceConfig)
 
 // WithDSN set dsn
-func WithDSN(dsn string) GORMProxyOption {
-	return func(g *gormBuilder) {
-		g.dbConfig.DSN = dsn
+func WithDSN(dsn string) GORMOption {
+	return func(g *serviceConfig) {
+		g.DSN = dsn
 	}
 }
 
@@ -17,9 +17,9 @@ func WithDSN(dsn string) GORMProxyOption {
 //
 // If MaxOpenConns is greater than 0 but less than the new MaxIdleConns,
 // then the new MaxIdleConns will be reduced to match the MaxOpenConns limit.
-func WithMaxIdle(maxIdel int) GORMProxyOption {
-	return func(g *gormBuilder) {
-		g.dbConfig.MaxIdle = maxIdel
+func WithMaxIdle(maxIdel int) GORMOption {
+	return func(g *serviceConfig) {
+		g.MaxIdle = maxIdel
 	}
 }
 
@@ -28,9 +28,9 @@ func WithMaxIdle(maxIdel int) GORMProxyOption {
 // If MaxIdleConns is greater than 0 and the new MaxOpenConns is less than
 // MaxIdleConns, then MaxIdleConns will be reduced to match the new
 // MaxOpenConns limit.
-func WithMaxOpen(maxOpen int) GORMProxyOption {
-	return func(g *gormBuilder) {
-		g.dbConfig.MaxOpen = maxOpen
+func WithMaxOpen(maxOpen int) GORMOption {
+	return func(g *serviceConfig) {
+		g.MaxOpen = maxOpen
 	}
 }
 
@@ -38,16 +38,16 @@ func WithMaxOpen(maxOpen int) GORMProxyOption {
 //
 // Expired connections may be closed lazily before reuse.
 // Uint: milliseconds
-func WithMaxIdleTime(maxIdelTime int) GORMProxyOption {
-	return func(g *gormBuilder) {
-		g.dbConfig.MaxIdleTime = maxIdelTime
+func WithMaxIdleTime(maxIdelTime int) GORMOption {
+	return func(g *serviceConfig) {
+		g.MaxIdleTime = maxIdelTime
 	}
 }
 
 // WithGORMConfig set GORM config.
-func WithGORMConfig(gormConfig *gorm.Config) GORMProxyOption {
-	return func(g *gormBuilder) {
-		g.gormConfig = *gormConfig
+func WithGORMConfig(gormConfig *gorm.Config) GORMOption {
+	return func(g *serviceConfig) {
+		g.gormConfig = gormConfig
 	}
 }
 
@@ -56,8 +56,8 @@ func WithGORMConfig(gormConfig *gorm.Config) GORMProxyOption {
 // Support: mysql, postgresql, sqlite, sqlserver, clickhouse
 // - postgresql uses the extended protocol
 // - disables implicit prepared statement use postgresql.simple
-func WithDriver(driver string) GORMProxyOption {
-	return func(g *gormBuilder) {
-		g.dbConfig.Driver = driver
+func WithDriver(driver string) GORMOption {
+	return func(g *serviceConfig) {
+		g.Driver = driver
 	}
 }
