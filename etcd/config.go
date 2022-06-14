@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	serviceConfigMap = map[string]serviceConfig{}
-	serviceConfigRW  sync.RWMutex
+	clientConfigMap = map[string]clientConfig{}
+	clientConfigRW  sync.RWMutex
 )
 
 func init() {
@@ -27,14 +27,13 @@ func init() {
 		return
 	}
 
-	for _, v := range c.Client.Service {
-		registerServiceConfig(v)
-	}
+	c.registerClientConfig()
 }
 
 type appConfig struct {
 	Client struct {
-		Service []serviceConfig `yaml:"service"`
+		Timeout int            `yaml:"timeout"`
+		Service []clientConfig `yaml:"service"`
 	} `yaml:"client"`
 }
 
@@ -52,7 +51,23 @@ func loadAppConfig() (*appConfig, error) {
 	return c, nil
 }
 
-type serviceConfig struct {
+func (a *appConfig) registerClientConfig() {
+	defaultTimeout := defaultClientConfig("").Timeout
+
+	for _, v := range a.Client.Service {
+		if v.Timeout < 1 {
+			v.Timeout = a.Client.Timeout
+		}
+
+		if v.Timeout < 1 {
+			v.Timeout = defaultTimeout
+		}
+
+		registerClientConfig(v)
+	}
+}
+
+type clientConfig struct {
 	Name        string `yaml:"name"`
 	Target      string `yaml:"target"`
 	Timeout     int    `yaml:"timeout"`
@@ -63,9 +78,9 @@ type serviceConfig struct {
 	CACertPath  string `yaml:"ca_cert"`
 }
 
-func newServiceConfig() *serviceConfig {
-	return &serviceConfig{
-		Name:        "",
+func defaultClientConfig(name string) clientConfig {
+	return clientConfig{
+		Name:        name,
 		Target:      "",
 		Timeout:     3000,
 		Username:    "",
@@ -76,23 +91,10 @@ func newServiceConfig() *serviceConfig {
 	}
 }
 
-func (s *serviceConfig) etcdConfig() (*clientv3.Config, error) {
+func (s *clientConfig) etcdConfig() (*clientv3.Config, error) {
 	tlsConfig, err := s.tlsConfig()
 	if err != nil {
 		return nil, err
-	}
-
-	cfg := newServiceConfig()
-	cfg.Name = s.Name
-	cfg.Target = s.Target
-	cfg.Username = s.Username
-	cfg.Password = s.Password
-	cfg.TLSKeyPath = s.TLSKeyPath
-	cfg.TLSCertPath = s.TLSCertPath
-	cfg.CACertPath = s.CACertPath
-
-	if s.Timeout > 0 {
-		cfg.Timeout = s.Timeout
 	}
 
 	return &clientv3.Config{
@@ -104,7 +106,7 @@ func (s *serviceConfig) etcdConfig() (*clientv3.Config, error) {
 	}, nil
 }
 
-func (s *serviceConfig) tlsConfig() (*tls.Config, error) {
+func (s *clientConfig) tlsConfig() (*tls.Config, error) {
 	if s.TLSKeyPath == "" || s.TLSCertPath == "" || s.CACertPath == "" {
 		return nil, nil
 	}
@@ -118,22 +120,19 @@ func (s *serviceConfig) tlsConfig() (*tls.Config, error) {
 	return tlsInfo.ClientConfig()
 }
 
-func registerServiceConfig(c serviceConfig) {
-	serviceConfigRW.Lock()
-	defer serviceConfigRW.Unlock()
-	serviceConfigMap[c.Name] = c
+func registerClientConfig(c clientConfig) {
+	clientConfigRW.Lock()
+	defer clientConfigRW.Unlock()
+	clientConfigMap[c.Name] = c
 }
 
-func getServiceConfig(name string) serviceConfig {
-	serviceConfigRW.RLock()
-	defer serviceConfigRW.RUnlock()
+func getClientConfig(name string) clientConfig {
+	clientConfigRW.RLock()
+	defer clientConfigRW.RUnlock()
 
-	c, exist := serviceConfigMap[name]
+	c, exist := clientConfigMap[name]
 	if !exist {
-		c = serviceConfig{
-			Name: name,
-		}
-		serviceConfigMap[name] = c
+		clientConfigMap[name] = defaultClientConfig(name)
 	}
 
 	return c

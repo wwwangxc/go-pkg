@@ -7,7 +7,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	e1, exist := serviceConfigMap["etcd1"]
+	e1, exist := clientConfigMap["etcd1"]
 	assert.True(t, exist, "etcd1 should exist")
 	assert.Equal(t, "etcd1", e1.Name)
 	assert.Equal(t, 1000, e1.Timeout)

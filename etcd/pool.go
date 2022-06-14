@@ -19,15 +19,15 @@ func getETCDClient(name string, opts ...ClientOption) (*clientv3.Client, error) 
 		return cli, nil
 	}
 
-	cfg := getServiceConfig(name)
+	cfg := getClientConfig(name)
 	for _, opt := range opts {
 		opt(&cfg)
 	}
 
-	return newETCDClient(getServiceConfig(name))
+	return newETCDClient(getClientConfig(name))
 }
 
-func newETCDClient(cfg serviceConfig) (*clientv3.Client, error) {
+func newETCDClient(cfg clientConfig) (*clientv3.Client, error) {
 	cliPoolRW.Lock()
 	defer cliPoolRW.Unlock()
 
