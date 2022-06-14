@@ -1,5 +1,7 @@
 # go-pkg ETCD Package
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/wwwangxc/go-pkg/etcd)](https://goreportcard.com/report/github.com/wwwangxc/go-pkg/etcd)
+[![GoDoc](https://pkg.go.dev/badge/github.com/wwwangxc/go-pkg/etcd?status.svg)](https://pkg.go.dev/github.com/wwwangxc/go-pkg/etcd)
 
 go-pkg/etcd is an componentized etcd client package.
 
@@ -274,6 +276,7 @@ app.yaml
 
 ```yaml
 client:
+  timeout: 3000
   service:
     - name: etcd1
       target: 127.0.0.1:2379,127.0.0.1:2380
